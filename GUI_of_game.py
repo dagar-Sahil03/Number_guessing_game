@@ -5,18 +5,27 @@ from PIL import Image, ImageTk
 import time
 
 def update_background(event=None):
+    global bg_image  # Declare bg_image as global to prevent garbage collection
+
     width = root.winfo_width()
     height = root.winfo_height()
 
-    # Load and resize the image
-    image = Image.open("bgimage.png")
-    image = image.resize((width, height), Image.LANCZOS)
-    bg_image = ImageTk.PhotoImage(image)
+    try:
+        image_path = r"C:\Users\yashd\OneDrive\Desktop\internship projects\Project1-Number game\Project_one\bgimage.png"
+        print(f"Attempting to load image from: {image_path}")
 
-    # Update the background label
-    bg_label.config(image=bg_image)
-    bg_label.image = bg_image  # Keep a reference to avoid garbage collection
-    bg_label.place(relwidth=1, relheight=1)
+        # Load and resize the image
+        image = Image.open(image_path)
+        image = image.resize((width, height), Image.LANCZOS)
+        bg_image = ImageTk.PhotoImage(image)
+
+        # Update the background label
+        bg_label.config(image=bg_image)
+        bg_label.image = bg_image  # Keep a reference to avoid garbage collection
+        bg_label.place(x=0, y=0, relwidth=1, relheight=1)  # Cover the entire window
+
+    except Exception as e:
+        print(f"Error loading background image: {e}")
 
 def start_game():
     global number, remaining_attempts, level, game_active, start_time
@@ -45,18 +54,6 @@ def start_game():
 
     attempts_label.config(text=f"Remaining Attempts: {remaining_attempts}")
 
-     # Change background color based on level
-    level_frame.config(bg="light yellow")
-    easy_rb.config(bg="light yellow")
-    medium_rb.config(bg="light yellow")
-    hard_rb.config(bg="light yellow")
-    
-    if level == "Easy":
-        easy_rb.config(bg="#D0F0C0")  # Light green for Easy level
-    elif level == "Medium":
-        medium_rb.config(bg="#D0F0C0")  # Light green for Medium level
-    elif level == "Hard":
-        hard_rb.config(bg="#D0F0C0")  # Light green for Hard level
     # Hide level selection elements
     level_heading.pack_forget()
     level_frame.pack_forget()
@@ -117,18 +114,27 @@ def check_guess():
         game_active = False
 
 def reset_game():
-    global game_active, start_time
+    global number, remaining_attempts, level, game_active, start_time
+
+    # Reset all game variables to initial state
+    number = None
+    remaining_attempts = 0
+    level = None
+    game_active = False
+    start_time = None
+
+    # Reset UI elements
     guess_entry.delete(0, tk.END)
     result_label.config(text="", bg="#333333")
     attempts_label.config(text="")
-    level_var.set(None)  # Reset the radio buttons
+    level_var.set(None)
 
-    # Reset button colors
-    easy_rb.config(fg="black")
-    medium_rb.config(fg="black")
-    hard_rb.config(fg="black")
+    # Reset level selection buttons
+    easy_rb.config(bg="light yellow")
+    medium_rb.config(bg="light yellow")
+    hard_rb.config(bg="light yellow")
 
-    # Show level selection elements again
+    # Show level selection elements
     level_heading.pack(pady=10)
     level_frame.pack(pady=10)
     easy_rb.pack(side=tk.LEFT, padx=5)
@@ -136,11 +142,22 @@ def reset_game():
     hard_rb.pack(side=tk.LEFT, padx=5)
     start_button.pack(pady=10, fill=tk.X)
 
-    # Enable the submit button and reset the game state
+    # Enable submit button
     submit_button.config(state=tk.NORMAL)
-    game_active = False
-    start_time = None  # Reset start_time when resetting the game
 
+    # Reset timer label
+    timer_label.config(text="Time Left: 60 seconds", fg="red")
+
+    # Update background image
+    update_background()
+
+    # Clear any existing game messages
+    result_label.config(text="")
+
+    # Update game state
+    game_active = False
+    
+    
 # Setting up the main window
 root = tk.Tk()
 root.title("Number Guessing Game")
